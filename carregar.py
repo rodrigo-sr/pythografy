@@ -44,12 +44,14 @@ def mascara_senha(passw = gera_senha()):
     return seeds_list, masked, passw
 
 #faz a descriptografia da senha
-def get_pass(seed_list, password):
+def get_pass(usuario, conta):
+    with open(f'usuarios/{usuario}.json', 'r') as ler:
+        senhas = json.load(ler)
     descriptografado = ''
-    for i in range(len(seed_list)):
-        dicionario = cript_dict(seed_list[i])
+    for i in range(len(senhas[f'{conta}'][0])):
+        dicionario = cript_dict(senhas[f'{conta}'][0][i])
         desmasc = {x:y for y,x in dicionario.items()}
-        descriptografado += desmasc[password[i]]
+        descriptografado += desmasc[senhas[f'{conta}'][1][i]]
     return descriptografado
 
 
@@ -64,10 +66,11 @@ def atualizar_usuarios(dicionario_user):
     with open('usuarios.json','w') as atualizar:
         json.dump(dicionario_user, atualizar, indent= 4)
 
-
+#abre o arquivo de usuários para leitura
 with open('usuarios.json', 'r') as usuarios:
     users = json.load(usuarios)
 
+#função para adicionar senha para um usuário em específico
 def add_senha_user(usuario):
     seeds, mascarado, senha = mascara_senha()
     conta = input("Digite a conta/site que deverá ser gerada a senha: ")
@@ -77,17 +80,29 @@ def add_senha_user(usuario):
     with open(f'usuarios/{usuario}.json', 'w') as escrever:
         json.dump(senha_user, escrever, indent= 4)
 
+#função para decisão do usuário caso ele já exista na base
+def decisao(usuario):
+    escolha = input("1 - Para gerar uma senha\n2 - Para obter uma senha\n")
+    if escolha == '1':
+        add_senha_user(usuario)
+    elif escolha == '2':
+        conta = input("digite o nome da conta a obter a senha: ")
+        print(get_pass(usuario,conta))
+    else:
+        print('Opção incorreta')
+        decisao()
 
 #funçao para iniciar o processo de verificação da existencia de um usuário
 def pergunta_usuario():
     usuario = input("Digite seu nome de usuário: ").lower()
 
     if usuario in users.keys():
-        print('estou aqui')
+        decisao(usuario)
     else:
         add_user(users, usuario)
         users[f'{usuario}'] = f'{usuario}.json'
         with open(f'usuarios/{usuario}.json', 'a') as arqu:
-            pass
+            json.dump(dict(),arqu,indent=4)
         atualizar_usuarios(users)
 
+pergunta_usuario()
