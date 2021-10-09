@@ -1,6 +1,11 @@
 import string
 import random
 import json
+import os
+import time
+
+def limpa():
+    os.system('cls')
 
 letras = string.ascii_letters + string.digits + string.punctuation
 
@@ -27,7 +32,7 @@ def cript_dict(semente):
 #gerador de senhas
 def gera_senha():
     senha = ''
-    while len(senha) < 6:
+    while len(senha) < 16:
         senha += random.choice(letras)
     
     return senha
@@ -80,29 +85,51 @@ def add_senha_user(usuario):
     with open(f'usuarios/{usuario}.json', 'w') as escrever:
         json.dump(senha_user, escrever, indent= 4)
 
+#função que lista o nome das contas que o usuário tem na base
+def listar_contas(usuario):
+    with open(f'usuarios/{usuario}.json', 'r') as ler:
+        senhas = json.load(ler)
+    for i in senhas.keys():
+        print(i)
+
 #função para decisão do usuário caso ele já exista na base
 def decisao(usuario):
     escolha = input("1 - Para gerar uma senha\n2 - Para obter uma senha\n")
+    limpa()
     if escolha == '1':
         add_senha_user(usuario)
     elif escolha == '2':
+        listar_contas(usuario)
         conta = input("digite o nome da conta a obter a senha: ")
+        limpa()
         print(get_pass(usuario,conta))
     else:
+        limpa()
         print('Opção incorreta')
-        decisao()
+        decisao(usuario)
 
 #funçao para iniciar o processo de verificação da existencia de um usuário
 def pergunta_usuario():
     usuario = input("Digite seu nome de usuário: ").lower()
+    limpa()
 
     if usuario in users.keys():
         decisao(usuario)
     else:
-        add_user(users, usuario)
-        users[f'{usuario}'] = f'{usuario}.json'
-        with open(f'usuarios/{usuario}.json', 'a') as arqu:
-            json.dump(dict(),arqu,indent=4)
-        atualizar_usuarios(users)
+        decisao2 = input("1 - Para criar usuário\n2 - Para introduzir usuário novamente")
+        if decisao2 == '1':
+            add_user(users, usuario)
+            users[f'{usuario}'] = f'{usuario}.json'
+            with open(f'usuarios/{usuario}.json', 'a') as arqu:
+                json.dump(dict(),arqu,indent=4)
+            atualizar_usuarios(users)
+        elif decisao2 == '2':
+            pergunta_usuario()
+        else:
+            print('Opção errada, finalizando script')
+            time.sleep(2)
+            print("Script finalizado")
+
+
 
 pergunta_usuario()
